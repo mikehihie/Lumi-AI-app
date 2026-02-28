@@ -78,8 +78,9 @@ export function Dashboard({ state }: { state: AppState }) {
         <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">{t('individualApps', state.language)}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {state.apps.map(app => {
-            const appPercentage = Math.min(100, (app.usedTime / app.limit) * 100);
-            const isAppLocked = app.usedTime >= app.limit;
+            const isEducational = app.category === 'Học tập' || app.category === 'Education';
+            const appPercentage = isEducational ? 0 : Math.min(100, (app.usedTime / app.limit) * 100);
+            const isAppLocked = !isEducational && app.usedTime >= app.limit;
             return (
               <div key={app.id} className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col gap-3">
                 <div className="flex justify-between items-center">
@@ -89,10 +90,14 @@ export function Dashboard({ state }: { state: AppState }) {
                     </div>
                     <div>
                       <h4 className="font-semibold text-slate-900 dark:text-white">{app.name}</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{app.category}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{isEducational ? t('educationalApp', state.language) : app.category}</p>
                     </div>
                   </div>
-                  {isAppLocked ? (
+                  {isEducational ? (
+                    <div className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+                      <Unlock className="w-3 h-3" /> {t('alwaysActive', state.language)}
+                    </div>
+                  ) : isAppLocked ? (
                     <div className="flex items-center gap-1 text-xs font-medium text-rose-600 bg-rose-50 px-2 py-1 rounded-md">
                       <Lock className="w-3 h-3" /> {t('locked', state.language)}
                     </div>
@@ -102,18 +107,22 @@ export function Dashboard({ state }: { state: AppState }) {
                     </div>
                   )}
                 </div>
-                <div className="relative h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mt-2">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${appPercentage}%` }}
-                    className={cn("absolute top-0 left-0 h-full rounded-full", isAppLocked ? "bg-rose-500" : "")}
-                    style={{ backgroundColor: isAppLocked ? undefined : app.color }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs font-medium text-slate-500">
-                  <span>{Math.floor(app.usedTime / 60)}h {app.usedTime % 60}m {t('used', state.language)}</span>
-                  <span>{Math.floor(app.limit / 60)}h {app.limit % 60}m {t('limitLabel', state.language)}</span>
-                </div>
+                {!isEducational && (
+                  <>
+                    <div className="relative h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mt-2">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${appPercentage}%` }}
+                        className={cn("absolute top-0 left-0 h-full rounded-full", isAppLocked ? "bg-rose-500" : "")}
+                        style={{ backgroundColor: isAppLocked ? undefined : app.color }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs font-medium text-slate-500">
+                      <span>{Math.floor(app.usedTime / 60)}h {app.usedTime % 60}m {t('used', state.language)}</span>
+                      <span>{Math.floor(app.limit / 60)}h {app.limit % 60}m {t('limitLabel', state.language)}</span>
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}

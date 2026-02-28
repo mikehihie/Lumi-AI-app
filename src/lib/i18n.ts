@@ -104,6 +104,8 @@ export const translations = {
     addNewDoc: 'Thêm Tài Liệu Mới (Dạng Text)',
     docName: 'Tên tài liệu...',
     pasteContent: 'Dán nội dung tài liệu vào đây...',
+    uploadFile: 'Hoặc tải lên file (PDF, Word, Ảnh)',
+    extractingText: 'Đang trích xuất văn bản...',
     saveDoc: 'Lưu Tài Liệu',
     aiReading: 'AI đang đọc tài liệu và tạo câu hỏi...',
     close: 'Đóng',
@@ -132,6 +134,8 @@ export const translations = {
     dailyLimitSetting: 'Giới hạn thời gian hàng ngày',
     minutes: 'phút',
     hours: 'giờ',
+    educationalApp: 'Ứng dụng học tập',
+    alwaysActive: 'Luôn hoạt động',
     logout: 'Đăng xuất',
     
     // Store & BP
@@ -270,6 +274,8 @@ export const translations = {
     addNewDoc: 'Add New Document (Text)',
     docName: 'Document name...',
     pasteContent: 'Paste document content here...',
+    uploadFile: 'Or upload file (PDF, Word, Image)',
+    extractingText: 'Extracting text...',
     saveDoc: 'Save Document',
     aiReading: 'AI is reading the document and generating questions...',
     close: 'Close',
@@ -298,6 +304,8 @@ export const translations = {
     dailyLimitSetting: 'Daily Time Limit',
     minutes: 'minutes',
     hours: 'hours',
+    educationalApp: 'Educational App',
+    alwaysActive: 'Always Active',
     logout: 'Log out',
     
     // Store & BP

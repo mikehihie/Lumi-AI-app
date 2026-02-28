@@ -1,7 +1,44 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { QuizRecord, AppData } from "../App";
+import mammoth from 'mammoth';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export async function extractTextFromFile(file: File): Promise<string> {
+  if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.name.endsWith('.docx')) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return result.value;
+    } catch (error) {
+      console.error("Error extracting text from Word document:", error);
+      throw new Error("Không thể trích xuất văn bản từ file Word này.");
+    }
+  }
+  
+  // For images and PDFs, use Gemini
+  const base64 = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: [
+      {
+        inlineData: {
+          data: base64,
+          mimeType: file.type
+        }
+      },
+      { text: "Trích xuất toàn bộ văn bản từ tài liệu này. Không thêm bất kỳ bình luận nào khác." }
+    ]
+  });
+  
+  return response.text || "";
+}
 
 export async function generateQuizQuestion(topic: string = "general knowledge", history: QuizRecord[] = []) {
   // Adaptive Learning Logic: Analyze history to determine difficulty
@@ -115,6 +152,50 @@ export async function suggestStudyMethod(problem: string) {
   return response.text || "";
 }
 
+export async function generateSpeedQuiz(topic: string = "Toán học") {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Tạo 5 câu hỏi trắc nghiệm nhanh về chủ đề ${topic}. Các câu hỏi nên ngắn gọn, dễ hiểu, có thể trả lời nhanh trong 10 giây.`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            question: { type: Type.STRING },
+            options: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Exactly 4 options" },
+            correctAnswerIndex: { type: Type.INTEGER }
+          },
+          required: ["question", "options", "correctAnswerIndex"]
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || "[]");
+}
+
+export async function generateWordMatch(topic: string = "Tiếng Anh") {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Tạo 5 cặp từ vựng/khái niệm tương ứng nhau về chủ đề ${topic}. Ví dụ: Từ tiếng Anh và nghĩa tiếng Việt, hoặc Thuật ngữ và Định nghĩa ngắn.`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            left: { type: Type.STRING, description: "Term or Word" },
+            right: { type: Type.STRING, description: "Definition or Translation" }
+          },
+          required: ["left", "right"]
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || "[]");
+}
 export async function generateQuizFromText(text: string) {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
